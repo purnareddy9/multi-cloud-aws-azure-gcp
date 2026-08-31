@@ -1,53 +1,107 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { awsLessons } from '../data/aws';
 import { LessonViewer } from '../components/lessons/LessonViewer';
-import { Cpu, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Cpu, CheckCircle2, ArrowRight, BookOpen, Layers } from 'lucide-react';
 import { isLessonComplete } from '../lib/progressStore';
 
 export const AwsTrackPage: React.FC = () => {
-  const [selectedLesson, setSelectedLesson] = useState(awsLessons[0]);
+  const { slug } = useParams<{ slug?: string }>();
+  const navigate = useNavigate();
+
+  // Find active lesson from slug or fallback to first
+  const selectedLesson = useMemo(() => {
+    if (slug) {
+      const match = awsLessons.find(
+        l => l.slug.toLowerCase() === slug.toLowerCase() ||
+             l.id.toLowerCase() === slug.toLowerCase() ||
+             l.id.toLowerCase().includes(slug.toLowerCase())
+      );
+      if (match) return match;
+    }
+    return awsLessons[0];
+  }, [slug]);
+
+  const handleSelectLesson = (lessonSlug: string) => {
+    navigate(`/aws/${lessonSlug}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleNextLesson = () => {
     const currentIndex = awsLessons.findIndex(l => l.id === selectedLesson.id);
     if (currentIndex < awsLessons.length - 1) {
-      setSelectedLesson(awsLessons[currentIndex + 1]);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      handleSelectLesson(awsLessons[currentIndex + 1].slug);
     }
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-      {/* Track Selector Ribbon */}
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30">
+      {/* Top Header Banner */}
+      <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900/90 border border-amber-500/30 shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30">
-            <Cpu className="w-5 h-5" />
+          <div className="p-3 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30">
+            <Cpu className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-100">Amazon Web Services (AWS) Architect Track</h1>
-            <p className="text-xs text-slate-400">17 Modular Architecture Lessons from Zero to Production</p>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">AWS Learning Track</span>
+            <h1 className="text-xl font-extrabold text-slate-100">Amazon Web Services Architect Path</h1>
+            <p className="text-xs text-slate-400 mt-0.5">17 Modular Architecture Lessons from Zero to Production</p>
           </div>
         </div>
 
-        {/* Module Selector Pill Dropdown */}
+        {/* Fast Module Selector Dropdown */}
         <select
-          value={selectedLesson.id}
-          onChange={(e) => {
-            const found = awsLessons.find(l => l.id === e.target.value);
-            if (found) setSelectedLesson(found);
-          }}
-          className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-amber-400 focus:outline-none focus:border-amber-400"
+          value={selectedLesson.slug}
+          onChange={(e) => handleSelectLesson(e.target.value)}
+          className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-amber-400 focus:outline-none focus:border-amber-400 max-w-xs"
         >
           {awsLessons.map((l, idx) => (
-            <option key={l.id} value={l.id}>
+            <option key={l.id} value={l.slug}>
               {idx + 1}. {l.title} {isLessonComplete(l.id) ? '✓' : ''}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Render 16-point Lesson */}
-      <LessonViewer lesson={selectedLesson} onNextLesson={handleNextLesson} />
+      {/* Main Content Layout with Module Sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left Module Navigation */}
+        <div className="space-y-2 order-2 lg:order-1">
+          <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+              AWS Track Modules ({awsLessons.length})
+            </span>
+            <div className="space-y-1.5 max-h-[650px] overflow-y-auto custom-scrollbar pr-1">
+              {awsLessons.map((lesson, idx) => {
+                const isActive = selectedLesson.id === lesson.id;
+                const isDone = isLessonComplete(lesson.id);
+                return (
+                  <button
+                    key={lesson.id}
+                    onClick={() => handleSelectLesson(lesson.slug)}
+                    className={`w-full text-left p-2.5 rounded-lg text-xs transition-all flex items-start justify-between gap-2 ${
+                      isActive
+                        ? 'bg-amber-950/60 border border-amber-500/50 text-amber-300 font-bold shadow-sm'
+                        : 'hover:bg-slate-800/60 text-slate-300 border border-transparent'
+                    }`}
+                  >
+                    <div className="truncate">
+                      <div className="text-[10px] text-slate-500 font-mono">Module 0{idx + 1}</div>
+                      <div className="truncate mt-0.5">{lesson.title}</div>
+                    </div>
+                    {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-1" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Center/Right 16-Point Lesson Viewer */}
+        <div className="lg:col-span-3 order-1 lg:order-2">
+          <LessonViewer lesson={selectedLesson} onNextLesson={handleNextLesson} />
+        </div>
+      </div>
     </div>
   );
 };

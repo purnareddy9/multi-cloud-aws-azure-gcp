@@ -543,5 +543,636 @@ export const awsLessons: LessonModule[] = [
       'Auto Scaling Groups guarantee high availability by self-healing failed instances.',
       'Blend Savings Plans (baseline) with Spot Instances (batch/burst) for optimal FinOps.'
     ]
+  },
+  {
+    id: 'aws-05-storage',
+    slug: 'storage',
+    level: 1,
+    track: 'aws',
+    category: 'Storage',
+    title: 'AWS Storage: S3, EBS Volumes & EFS File Systems',
+    subtitle: 'Choosing between Object (S3), Block (EBS), and Shared File (EFS) Storage',
+    estimatedMinutes: 25,
+    iconName: 'HardDrive',
+    whatIsIt: 'AWS provides three primary storage models: S3 for unbounded object storage, EBS for low-latency block volumes attached to EC2 instances, and EFS for shared elastic NFS file systems accessible across hundreds of instances simultaneously.',
+    whyExists: 'Different workloads require different storage semantics: databases require sub-millisecond block IOPS (EBS), static assets need massive scale durability (S3), and content management systems require shared POSIX file mounts (EFS).',
+    simpleExplanation: 'S3 is an infinite digital warehouse accessible via web URLs (HTTP GET/PUT). EBS is a dedicated SSD drive plugged directly into one server. EFS is a shared network hard drive that dozens of servers can read and write to at the same time.',
+    visualDiagramType: 'flow',
+    diagramData: {
+      nodes: [
+        { id: '1', label: 'Amazon S3 (Objects)', type: 'storage', details: '11 9s Durability, HTTP API' },
+        { id: '2', label: 'Amazon EBS (Block)', type: 'storage', details: 'Attached to EC2, low IOPS lag' },
+        { id: '3', label: 'Amazon EFS (File NFS)', type: 'storage', details: 'Multi-AZ shared POSIX mount' }
+      ],
+      flow: [
+        { from: '1', to: '2', label: 'Snapshot backup' },
+        { from: '3', to: '2', label: 'Mounted via NFS' }
+      ]
+    },
+    realWorldExample: 'An enterprise WordPress cluster stores uploaded photos in S3 (cached via CloudFront), runs its database on an EC2 instance with an io2 Block Express EBS volume, and shares theme PHP files across 10 web instances via EFS.',
+    architectureExample: {
+      title: 'Tiered Storage Architecture',
+      description: 'S3 Intelligent-Tiering automatically cycles cold objects to Glacier, while active EC2 instances read shared assets from multi-AZ EFS mounts.',
+      flow: [
+        'Users upload PDFs -> S3 bucket with SSE-KMS encryption',
+        'S3 Lifecycle rule transitions files unaccessed for 90 days to Glacier Deep Archive',
+        'EC2 instances mount EFS filesystem (10.0.10.5) with bursting throughput'
+      ]
+    },
+    whenToUse: [
+      'Use S3 for media, data lakes, static web hosting, and disaster recovery backups.',
+      'Use EBS for database files (PostgreSQL/MySQL), root operating system disks, and high IOPS workloads.',
+      'Use EFS when multiple EC2 instances or EKS pods must share a single POSIX-compliant filesystem.'
+    ],
+    whenNotToUse: [
+      'Do not use EBS across multiple instances unless using Multi-Attach on specific Nitro cluster configurations.',
+      'Do not run high-transaction relational databases directly on EFS due to NFS latency overhead.'
+    ],
+    advantages: [
+      'S3 provides 99.999999999% (11 9s) durability.',
+      'EFS automatically scales storage up and down with zero pre-provisioning.',
+      'EBS gp3 allows configuring IOPS and Throughput independently of disk size.'
+    ],
+    disadvantages: [
+      'EFS per-GB pricing is higher than EBS and S3.',
+      'S3 API request fees (PUT/GET) can add up during high-frequency small-file operations.'
+    ],
+    cloudEquivalents: {
+      aws: 'S3 (Object) | EBS (Block) | EFS (File)',
+      azure: 'Blob Storage | Azure Managed Disks | Azure Files',
+      gcp: 'Cloud Storage (GCS) | Persistent Disk (PD) | Filestore',
+      notes: 'S3 = Azure Blob = GCP Cloud Storage; EBS = Azure Managed Disk = GCP Persistent Disk.'
+    },
+    commonMistakes: [
+      {
+        mistake: 'Using gp2 EBS volumes instead of modern gp3 volumes.',
+        consequence: 'Paying 20% more for lower baseline performance.',
+        fix: 'Migrate all EBS volumes to gp3 (baseline 3,000 IOPS and 125 MB/s included free).'
+      }
+    ],
+    handsOn: {
+      type: 'simulation',
+      title: 'Terraform: Provisioning S3 with Intelligent-Tiering & KMS',
+      scenario: 'Create a secure S3 bucket with default KMS encryption and automatic lifecycle transitions.',
+      terraformCode: `resource "aws_s3_bucket" "data_lake" {
+  bucket = "company-analytics-lake-prod"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "s3_kms" {
+  bucket = aws_s3_bucket.data_lake.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "aws:kms"
+    }
+  }
+}`,
+      expectedOutcome: 'S3 bucket created with mandatory KMS encryption at rest.',
+      steps: ['1. Define bucket', '2. Attach SSE-KMS encryption rule', '3. Apply public access block']
+    },
+    scenarioChallenge: {
+      title: 'Shared Storage for Microservices',
+      problem: 'You are migrating a legacy CMS that requires multiple Linux servers to read and write to the same `/var/www/uploads` folder simultaneously. What storage service should you select?',
+      constraints: ['Shared POSIX access across multiple instances', 'Automated cross-AZ resilience'],
+      options: [
+        {
+          id: 'a',
+          text: 'Amazon EBS gp3 volume attached to all instances',
+          isCorrect: false,
+          explanation: 'Standard EBS volumes can only be attached to a single EC2 instance in a single AZ.'
+        },
+        {
+          id: 'b',
+          text: 'Amazon Elastic File System (EFS) mounted via NFS across all EC2 instances',
+          isCorrect: true,
+          explanation: 'Correct! EFS provides multi-AZ shared POSIX file access for multiple instances concurrently.'
+        },
+        {
+          id: 'c',
+          text: 'Instance Store ephemeral disk',
+          isCorrect: false,
+          explanation: 'Instance store is temporary and lost when the instance is stopped.'
+        }
+      ]
+    },
+    interviewQuestions: [
+      {
+        question: 'Explain the architectural differences between S3, EBS, and EFS.',
+        whyAsked: 'Tests ability to choose the right storage tier for specific workload constraints.',
+        answer: 'S3 is an HTTP REST-based object store with 11 9s durability and infinite scalability, ideal for static files and backups. EBS is a low-latency block-level storage volume mounted directly to a single EC2 instance, ideal for OS root drives and databases. EFS is a managed NFS shared file system that can be mounted simultaneously by thousands of EC2 instances and EKS pods across multiple AZs.',
+        architecturalDefense: 'Selecting the proper storage tier prevents performance bottlenecks (e.g. running DB on EFS) and reduces costs by up to 90% (e.g. offloading images from EBS to S3).',
+        keyPoints: ['Object vs Block vs File', 'S3 HTTP API vs EBS block device vs EFS NFS', 'Single instance vs Multi-instance sharing']
+      }
+    ],
+    keyTakeaways: [
+      'S3 for unstructured objects, EBS for single-instance block storage, EFS for shared multi-instance files.',
+      'Always use gp3 over gp2 for EBS volumes.',
+      'Enforce S3 Block Public Access and KMS encryption at rest.'
+    ]
+  },
+  {
+    id: 'aws-06-databases',
+    slug: 'databases',
+    level: 1,
+    track: 'aws',
+    category: 'Databases & In-Memory',
+    title: 'AWS Databases: RDS, Aurora, DynamoDB & ElastiCache',
+    subtitle: 'Managed Relational vs NoSQL vs In-Memory Caching Architecture',
+    estimatedMinutes: 30,
+    iconName: 'Database',
+    whatIsIt: 'AWS provides specialized database engines: RDS for managed relational engines (Postgres/MySQL), Aurora for cloud-native 5x throughput with 128TB auto-scaling storage, DynamoDB for single-digit millisecond NoSQL, and ElastiCache (Redis) for sub-millisecond in-memory caching.',
+    whyExists: 'No single database fits every workload. Decoupling transactional relational data from key-value sessions and in-memory caches unlocks extreme scale and resilience.',
+    simpleExplanation: 'RDS is a cloud-managed PostgreSQL/MySQL server. Aurora is RDS on steroids with a custom distributed storage engine. DynamoDB is an ultra-fast NoSQL database that never slows down regardless of scale. ElastiCache is super-fast RAM memory sitting in front of your database.',
+    visualDiagramType: 'flow',
+    diagramData: {
+      nodes: [
+        { id: '1', label: 'ElastiCache Redis', type: 'cache', details: '<1ms Read Cache' },
+        { id: '2', label: 'Amazon Aurora (Primary)', type: 'database', details: 'Writes in AZ-1' },
+        { id: '3', label: 'Aurora Read Replica', type: 'database', details: 'Reads in AZ-2' },
+        { id: '4', label: 'DynamoDB', type: 'database', details: 'Shopping Carts / Sessions' }
+      ],
+      flow: [
+        { from: '1', to: '2', label: 'Cache Miss -> Read DB' },
+        { from: '2', to: '3', label: 'Shared Storage Sync (<10ms lag)' }
+      ]
+    },
+    realWorldExample: 'Airbnb caches search results in ElastiCache Redis, stores user profile transactions in Aurora PostgreSQL Multi-AZ, and stores high-frequency clickstream and user sessions in DynamoDB.',
+    architectureExample: {
+      title: 'High-Throughput Aurora & Redis Topology',
+      description: 'Application reads from Redis; cache misses query Aurora Read Endpoint distributed across 3 AZs; writes go strictly to Aurora Primary Writer.',
+      flow: [
+        'App checks Redis for user profile (hit rate: 92%)',
+        'On cache miss, app queries Aurora Reader Endpoint (spread across 3 AZs)',
+        'Order placement writes directly to Aurora Writer Endpoint',
+        'Aurora automatically replicates 6 copies of data across 3 AZs at storage layer'
+      ]
+    },
+    whenToUse: [
+      'Use Aurora for enterprise transactional applications requiring ACID compliance and automated failover.',
+      'Use DynamoDB for massive scale, serverless applications, key-value lookup, and shopping carts.',
+      'Use ElastiCache (Redis) to offload 90% of read traffic from databases.'
+    ],
+    whenNotToUse: [
+      'Do not use DynamoDB if your application requires complex SQL JOINs across 10 tables.',
+      'Do not expose database ports (5432, 3306, 6379) to public subnets.'
+    ],
+    advantages: [
+      'Aurora provides up to 5x throughput of standard MySQL and 3x PostgreSQL.',
+      'DynamoDB offers automatic multi-region global replication with DynamoDB Global Tables.',
+      'Multi-AZ RDS handles automated failover in under 60 seconds with 0 data loss.'
+    ],
+    disadvantages: [
+      'Aurora pricing is higher than standard RDS for small low-traffic workloads.',
+      'DynamoDB requires careful partition key design to prevent hot partitions.'
+    ],
+    cloudEquivalents: {
+      aws: 'RDS / Aurora | DynamoDB | ElastiCache Redis',
+      azure: 'Azure SQL / Cosmos DB | Azure Redis Cache',
+      gcp: 'Cloud SQL / Spanner | Firestore | Memorystore',
+      notes: 'Aurora = Azure SQL MI = GCP Cloud SQL/Spanner; DynamoDB = Cosmos DB = Firestore.'
+    },
+    commonMistakes: [
+      {
+        mistake: 'Directing all read queries to the Aurora Primary Writer instance.',
+        consequence: 'Writer CPU reaches 100%, causing checkout transaction timeouts.',
+        fix: 'Split database connection strings: send writes to Writer Endpoint and reads to Reader Endpoint.'
+      }
+    ],
+    handsOn: {
+      type: 'simulation',
+      title: 'Terraform: Aurora PostgreSQL Multi-AZ Cluster',
+      scenario: 'Deploy an Aurora PostgreSQL cluster with 1 writer and 2 auto-scaling read replicas in private subnets.',
+      terraformCode: `resource "aws_rds_cluster" "aurora" {
+  cluster_identifier      = "aurora-prod-cluster"
+  engine                  = "aurora-postgresql"
+  engine_version          = "15.4"
+  database_name           = "production_db"
+  master_username         = "dbadmin"
+  manage_master_user_password = true # Auto-managed in AWS Secrets Manager
+
+  db_subnet_group_name    = "db-private-subnets"
+  storage_encrypted       = true
+  deletion_protection     = true
+}`,
+      expectedOutcome: 'Aurora cluster deployed with encrypted multi-AZ distributed storage.',
+      steps: ['1. Create RDS Cluster', '2. Enable KMS encryption', '3. Use Secrets Manager for password']
+    },
+    scenarioChallenge: {
+      title: 'Preventing Database Flash Sale Crash',
+      problem: 'During a 1-hour flash sale, your MySQL database receives 50,000 read queries/sec for product listings. The database is freezing. What is the fastest architectural remedy?',
+      constraints: ['Zero application code rewrite', 'Immediate read offload'],
+      options: [
+        {
+          id: 'a',
+          text: 'Upgrade to a 128 vCPU primary instance and reboot the server during the sale',
+          isCorrect: false,
+          explanation: 'Rebooting causes downtime during the sale, and vertical scaling still hits connection limits.'
+        },
+        {
+          id: 'b',
+          text: 'Add an ElastiCache Redis caching cluster and add 3 Aurora Read Replicas to absorb read traffic',
+          isCorrect: true,
+          explanation: 'Correct! In-memory Redis caching offloads 90% of read queries, while read replicas distribute remaining search requests.'
+        },
+        {
+          id: 'c',
+          text: 'Migrate the entire application to DynamoDB 10 minutes before the sale',
+          isCorrect: false,
+          explanation: 'Rewriting relational schemas to NoSQL requires significant application rewrites.'
+        }
+      ]
+    },
+    interviewQuestions: [
+      {
+        question: 'How does Amazon Aurora achieve faster failover and higher throughput than standard RDS Multi-AZ?',
+        whyAsked: 'Assesses deep knowledge of cloud-native database storage architecture.',
+        answer: 'Standard RDS uses synchronous physical block-level replication to a standby instance in another AZ (failover takes 60-120 seconds). Aurora separates compute from storage: its distributed storage tier replicates 6 copies of data across 3 AZs continuously at the SSD disk layer. Compute instances share this underlying virtual storage pool, allowing an Aurora Read Replica to be promoted to Primary Writer in under 15-30 seconds with zero storage sync lag.',
+        architecturalDefense: 'Decoupling compute from storage eliminates write amplification and prevents primary database stall during heavy writes.',
+        keyPoints: ['Compute/Storage separation', '6 storage copies across 3 AZs', 'Sub-30s failover']
+      }
+    ],
+    keyTakeaways: [
+      'Use Aurora for mission-critical relational data requiring sub-30s failover.',
+      'Use DynamoDB for unbounded scale and sub-10ms key-value latency.',
+      'Always cache read-heavy data in ElastiCache Redis.'
+    ]
+  },
+  {
+    id: 'aws-07-loadbalancing',
+    slug: 'loadbalancing',
+    level: 1,
+    track: 'aws',
+    category: 'Networking & Content Delivery',
+    title: 'AWS Elastic Load Balancing: ALB vs NLB vs GWLB',
+    subtitle: 'Layer 7 HTTP vs Layer 4 TCP/UDP vs Layer 3 Bump-in-the-Wire Firewalls',
+    estimatedMinutes: 20,
+    iconName: 'Globe',
+    whatIsIt: 'Elastic Load Balancing (ELB) automatically distributes incoming application traffic across multiple targets (EC2, containers, IP addresses, Lambda functions) across multiple Availability Zones.',
+    whyExists: 'Provides single DNS entry point, TLS certificate termination, health check routing, and elastic traffic distribution.',
+    simpleExplanation: 'ALB is a smart Layer 7 traffic cop that inspects HTTP URLs and headers (e.g. routing `/api` to microservice A and `/images` to microservice B). NLB is an ultra-fast Layer 4 firehose that forwards raw TCP/UDP packets with millions of requests per second at microsecond latency. GWLB routes all traffic through third-party security inspection appliances.',
+    visualDiagramType: 'flow',
+    diagramData: {
+      nodes: [
+        { id: '1', label: 'Application Load Balancer (ALB)', type: 'gateway', details: 'Layer 7 (HTTP/HTTPS, Path Routing)' },
+        { id: '2', label: 'Network Load Balancer (NLB)', type: 'gateway', details: 'Layer 4 (TCP/UDP, Millions RPS, Static IP)' },
+        { id: '3', label: 'Gateway Load Balancer (GWLB)', type: 'gateway', details: 'Layer 3 (Inline Security Appliance Inspection)' }
+      ],
+      flow: [
+        { from: '1', to: '2', label: 'Choose based on OSI Layer' }
+      ]
+    },
+    realWorldExample: 'A video streaming platform uses ALB for its web and mobile REST APIs to route by path (`/browse`, `/auth`), while using NLB for live gaming WebSocket servers requiring ultra-low millisecond TCP latency and static Anycast IPs.',
+    architectureExample: {
+      title: 'Path-Based Microservices Routing on ALB',
+      description: 'A single ALB listens on port 443 with an ACM SSL certificate and routes traffic to target groups based on URL paths.',
+      flow: [
+        'Request to api.company.com/orders -> Routes to EKS Orders Target Group',
+        'Request to api.company.com/users -> Routes to EC2 Users Target Group',
+        'Request to api.company.com/checkout -> Routes to Lambda Function Target'
+      ]
+    },
+    whenToUse: [
+      'Use ALB for HTTP/HTTPS web apps, microservices, container routing, and gRPC.',
+      'Use NLB for extreme performance, gaming, financial trading, static Elastic IP needs, or non-HTTP protocols (TCP/UDP/TLS).',
+      'Use GWLB to deploy inline third-party firewall appliances (Palo Alto, Fortinet, Check Point).'
+    ],
+    whenNotToUse: [
+      'Do not use Classic Load Balancer (CLB) in modern architectures (deprecated).',
+      'Do not use ALB for raw TCP socket protocols (use NLB).'
+    ],
+    advantages: [
+      'ALB natively integrates with AWS WAF for DDoS and SQL injection defense.',
+      'NLB can handle sudden traffic spikes of millions of RPS without pre-warming.',
+      'Built-in health checks automatically route traffic away from failed instances.'
+    ],
+    disadvantages: [
+      'ALB IP addresses change dynamically (requires CNAME/Alias records, not static A records).',
+      'NLB does not inspect HTTP headers, cookies, or URL paths.'
+    ],
+    cloudEquivalents: {
+      aws: 'ALB (Layer 7) | NLB (Layer 4)',
+      azure: 'Application Gateway (Layer 7) | Azure Load Balancer (Layer 4)',
+      gcp: 'Global External HTTP(S) LB (Layer 7) | Network Passthrough LB (Layer 4)',
+      notes: 'ALB = Azure App Gateway = GCP External HTTP(S) LB.'
+    },
+    commonMistakes: [
+      {
+        mistake: 'Trying to assign a static Elastic IP address directly to an Application Load Balancer.',
+        consequence: 'ALB does not support static IPs; IPs scale dynamically across AZs.',
+        fix: 'Place an NLB or AWS Global Accelerator in front of the ALB if static client IP allowlisting is required.'
+      }
+    ],
+    handsOn: {
+      type: 'simulation',
+      title: 'AWS CLI: Describing Load Balancers',
+      scenario: 'Query active Application Load Balancers and check target group health.',
+      cliCommand: 'aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/app-tg/abcdef',
+      expectedOutcome: 'Returns target health: State=healthy for all EC2 instances across AZ-1 and AZ-2.',
+      steps: ['1. List ALBs', '2. Inspect target group ARNs', '3. Verify healthy target count']
+    },
+    scenarioChallenge: {
+      title: 'Real-Time Financial Gaming Protocol',
+      problem: 'An ultra-low latency real-time multiplayer gaming server requires 500,000 simultaneous TCP socket connections, static whitelisted IP addresses for corporate partners, and sub-millisecond packet routing. Which load balancer do you choose?',
+      constraints: ['Extreme Layer 4 TCP performance', 'Static public IP requirement'],
+      options: [
+        {
+          id: 'a',
+          text: 'Application Load Balancer (ALB)',
+          isCorrect: false,
+          explanation: 'ALB operates at Layer 7, introduces HTTP parsing latency, and does not support static IPs.'
+        },
+        {
+          id: 'b',
+          text: 'Network Load Balancer (NLB)',
+          isCorrect: true,
+          explanation: 'Correct! NLB operates at Layer 4, provides ultra-low latency, handles millions of RPS, and supports static Elastic IPs per AZ.'
+        },
+        {
+          id: 'c',
+          text: 'Route 53 round-robin DNS directly to EC2 instances',
+          isCorrect: false,
+          explanation: 'DNS round-robin does not provide instant health check failover and exposes individual VM IPs.'
+        }
+      ]
+    },
+    interviewQuestions: [
+      {
+        question: 'When would you architect a system with Network Load Balancer (NLB) in front of an Application Load Balancer (ALB)?',
+        whyAsked: 'Advanced cloud networking architecture pattern.',
+        answer: 'You place an NLB in front of an ALB when: (1) Corporate clients require a static whitelisted IP address (NLB provides static Elastic IPs per AZ, whereas ALB IPs change dynamically); (2) You need PrivateLink to expose an ALB-backed service privately across VPCs; (3) You want AWS Global Accelerator with static Anycast IPs terminating at the edge and forwarding to the ALB.',
+        architecturalDefense: 'This combines the static IP and extreme Layer 4 throughput of NLB with the rich URL path-based routing, header rewriting, and WAF protection of ALB.',
+        keyPoints: ['Static Elastic IP requirement', 'AWS PrivateLink support', 'Layer 4 + Layer 7 hybrid design']
+      }
+    ],
+    keyTakeaways: [
+      'ALB for Layer 7 HTTP/HTTPS microservices and path routing.',
+      'NLB for Layer 4 TCP/UDP extreme throughput and static IPs.',
+      'Always deploy load balancers across multiple Availability Zones.'
+    ]
+  },
+  {
+    id: 'aws-10-kubernetes',
+    slug: 'kubernetes',
+    level: 1,
+    track: 'aws',
+    category: 'Containers & Kubernetes',
+    title: 'AWS EKS: Managed Kubernetes, Pod Identity & Karpenter',
+    subtitle: 'Production Kubernetes architecture with IRSA, VPC CNI & Next-Gen Autoscaling',
+    estimatedMinutes: 30,
+    iconName: 'Layers',
+    whatIsIt: 'Amazon Elastic Kubernetes Service (Amazon EKS) is a managed Kubernetes service that runs the upstream Kubernetes control plane across multiple AWS Availability Zones with automated patching and high availability.',
+    whyExists: 'Running unmanaged Kubernetes on raw EC2 requires managing etcd quorums, certificate rotations, and control plane HA. EKS automates this with enterprise AWS security and networking integration.',
+    simpleExplanation: 'EKS is like having a team of Kubernetes site reliability engineers managing the control plane brain (etcd and API servers) for you. You simply deploy your containerized worker nodes and pods.',
+    visualDiagramType: 'flow',
+    diagramData: {
+      nodes: [
+        { id: '1', label: 'EKS Managed Control Plane', type: 'k8s', details: 'Multi-AZ etcd & API Server (99.95% SLA)' },
+        { id: '2', label: 'Managed Node Group (AZ-1)', type: 'compute', details: 'EC2 Worker Nodes' },
+        { id: '3', label: 'Managed Node Group (AZ-2)', type: 'compute', details: 'EC2 Worker Nodes' },
+        { id: '4', label: 'Karpenter Autoscaler', type: 'scaling', details: 'Sub-second JIT Node Provisioner' }
+      ],
+      flow: [
+        { from: '1', to: '2', label: 'Kubelet TLS' },
+        { from: '1', to: '3', label: 'Kubelet TLS' },
+        { from: '4', to: '2', label: 'Launches Right-Sized Node' }
+      ]
+    },
+    realWorldExample: 'Snapchat runs over 300,000 cores across AWS EKS clusters, using Karpenter to provision right-sized Graviton EC2 instances on-the-fly to handle live video messaging traffic.',
+    architectureExample: {
+      title: 'Enterprise EKS Cluster Architecture',
+      description: 'Private EKS cluster with AWS VPC CNI allocating secondary subnet IPs to pods, Karpenter autoscaling, and IRSA for least-privilege IAM.',
+      flow: [
+        'EKS API Server configured with Private Endpoint Access',
+        'Pods receive native VPC IP addresses via AWS VPC CNI',
+        'Pod assumes IAM role via EKS Pod Identity / OIDC federation',
+        'Karpenter provisions Spot/On-Demand mixed nodes based on unschedulable pod resource requests'
+      ]
+    },
+    whenToUse: [
+      'Standardizing on vendor-neutral container orchestration across clouds.',
+      'Complex microservice topologies with service meshes (Istio/Linkerd).',
+      'High-density container workloads scaling up and down dynamically.'
+    ],
+    whenNotToUse: [
+      'Simple web APIs that can run with zero operational overhead on AWS ECS or AWS Lambda.',
+      'Teams with no dedicated platform engineering or Kubernetes operations expertise.'
+    ],
+    advantages: [
+      '99.95% control plane uptime SLA.',
+      'Deep AWS integration (VPC CNI, AWS Load Balancer Controller, EKS Pod Identity).',
+      'Karpenter provides significantly faster and cheaper node autoscaling than Cluster Autoscaler.'
+    ],
+    disadvantages: [
+      '$0.10/hour per cluster control plane fee.',
+      'VPC CNI can cause IP exhaustion in small subnets if secondary CIDRs are not planned.'
+    ],
+    cloudEquivalents: {
+      aws: 'Amazon EKS',
+      azure: 'Azure Kubernetes Service (AKS)',
+      gcp: 'Google Kubernetes Engine (GKE)',
+      notes: 'GKE has Autopilot; EKS offers Karpenter and deep IAM IRSA integration.'
+    },
+    commonMistakes: [
+      {
+        mistake: 'Using standard Kubernetes Secrets for database passwords without encryption.',
+        consequence: 'Secrets are stored in plaintext base64 in etcd.',
+        fix: 'Enable EKS Envelope Encryption with AWS KMS and use AWS Secrets Manager with External Secrets Operator.'
+      }
+    ],
+    handsOn: {
+      type: 'simulation',
+      title: 'Terraform: Provisioning an EKS Cluster',
+      scenario: 'Deploy a production EKS cluster with managed node groups and KMS secret encryption.',
+      terraformCode: `module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "19.0.0"
+
+  cluster_name    = "production-eks"
+  cluster_version = "1.28"
+
+  vpc_id     = "vpc-01234567"
+  subnet_ids = ["subnet-1a", "subnet-1b", "subnet-1c"]
+
+  eks_managed_node_groups = {
+    general = {
+      instance_types = ["t4g.medium"]
+      min_size       = 2
+      max_size       = 10
+      desired_size   = 3
+    }
+  }
+}`,
+      expectedOutcome: 'EKS cluster created across 3 AZs with Graviton managed node group.',
+      steps: ['1. Define cluster module', '2. Assign private subnets', '3. Configure managed node group']
+    },
+    scenarioChallenge: {
+      title: 'Kubernetes Pod Security Isolation',
+      problem: 'In your EKS cluster, the Payment pod needs access to S3 bucket `payments-vault`, while the Analytics pod needs access to `analytics-data`. How do you enforce this?',
+      constraints: ['Zero shared credentials', 'Enforce least privilege at pod level'],
+      options: [
+        {
+          id: 'a',
+          text: 'Grant the EC2 Worker Node IAM Role full access to both buckets',
+          isCorrect: false,
+          explanation: 'Violates isolation: Any compromised pod on the worker node can access payments data.'
+        },
+        {
+          id: 'b',
+          text: 'Use EKS Pod Identity / IRSA to map distinct IAM Roles to each pod\'s Kubernetes ServiceAccount',
+          isCorrect: true,
+          explanation: 'Correct! IRSA ensures each pod only receives short-lived STS tokens for its specific IAM role.'
+        },
+        {
+          id: 'c',
+          text: 'Hardcode AWS access keys in pod environment variables',
+          isCorrect: false,
+          explanation: 'Security anti-pattern.'
+        }
+      ]
+    },
+    interviewQuestions: [
+      {
+        question: 'How does AWS VPC CNI work in EKS, and how do you prevent VPC IP exhaustion?',
+        whyAsked: 'Key Kubernetes network architecture question.',
+        answer: 'AWS VPC CNI assigns native private IPv4 addresses from your VPC subnets directly to Kubernetes pods via Secondary Elastic Network Interfaces (ENIs). In small subnets, hundreds of pods can quickly exhaust all available IPs. To prevent exhaustion: (1) Attach a secondary non-routable CIDR block (e.g. 100.64.0.0/10 CGNAT range) to the VPC dedicated for pods; (2) Configure prefix delegation (`ENABLE_PREFIX_DELEGATION=true`) to allocate /28 IP prefixes per ENI; (3) Migrate to IPv6 EKS clusters.',
+        architecturalDefense: 'Custom networking with secondary CIDRs isolates pod IP churn from core corporate subnet allocations while preserving native routing speed without NAT overlay overhead.',
+        keyPoints: ['Secondary ENI allocation', 'Prefix delegation', 'Custom networking with 100.64.0.0/10 CIDR']
+      }
+    ],
+    keyTakeaways: [
+      'EKS manages the Kubernetes control plane with a 99.95% SLA.',
+      'Use Karpenter for fast, cost-effective node provisioning.',
+      'Always use EKS Pod Identity / IRSA for least-privilege cloud access.'
+    ]
+  },
+  {
+    id: 'aws-11-serverless',
+    slug: 'serverless',
+    level: 1,
+    track: 'aws',
+    category: 'Serverless & Application Integration',
+    title: 'AWS Serverless: Lambda, API Gateway & EventBridge',
+    subtitle: 'Building event-driven architectures with zero server management and automatic scaling',
+    estimatedMinutes: 25,
+    iconName: 'Zap',
+    whatIsIt: 'AWS Lambda is a serverless, event-driven compute service that lets you run code for virtually any type of application without provisioning or managing servers. Paired with API Gateway and EventBridge, it forms the backbone of modern serverless architectures.',
+    whyExists: 'Eliminates 100% of server management, operating system patching, and idle capacity costs. You pay strictly for execution time measured in milliseconds.',
+    simpleExplanation: 'Instead of keeping a computer running 24/7 waiting for work, Lambda is code that sleeps. When an event arrives (a web request, a file uploaded to S3, a message on a queue), AWS spins up a microVM in milliseconds, runs your function, and immediately shuts down.',
+    visualDiagramType: 'flow',
+    diagramData: {
+      nodes: [
+        { id: '1', label: 'Amazon API Gateway', type: 'gateway', details: 'REST / HTTP API Endpoint' },
+        { id: '2', label: 'AWS Lambda (Node/Python/Go)', type: 'compute', details: 'Executes in ms, scales to 10k' },
+        { id: '3', label: 'Amazon DynamoDB', type: 'database', details: 'Serverless NoSQL Storage' },
+        { id: '4', label: 'Amazon EventBridge', type: 'gateway', details: 'Event-driven message bus' }
+      ],
+      flow: [
+        { from: '1', to: '2', label: 'HTTPS Request' },
+        { from: '2', to: '3', label: 'Read/Write Data' },
+        { from: '2', to: '4', label: 'Publish Event' }
+      ]
+    },
+    realWorldExample: 'iRobot uses AWS Lambda and API Gateway to process billions of IoT events daily from millions of connected Roomba vacuum cleaners, scaling automatically during holidays without provisioning a single EC2 server.',
+    architectureExample: {
+      title: 'Event-Driven Serverless Microservice',
+      description: 'API Gateway triggers Lambda, which writes to DynamoDB and publishes an event to EventBridge, triggering asynchronous invoice generation and email notifications.',
+      flow: [
+        'Client sends POST /checkout -> API Gateway validates JWT token',
+        'Lambda processes payment and writes order to DynamoDB',
+        'DynamoDB Stream triggers EventBridge event bus',
+        'EventBridge routes order event to Inventory Lambda and Email SNS Notification in parallel'
+      ]
+    },
+    whenToUse: [
+      'Event-driven asynchronous tasks (S3 file processing, DynamoDB streams, SQS workers).',
+      'REST and GraphQL APIs with spiky or unpredictable traffic.',
+      'Scheduled cron tasks (EventBridge Scheduler).'
+    ],
+    whenNotToUse: [
+      'Long-running computational jobs exceeding Lambda\'s 15-minute maximum execution timeout (use ECS/Batch).',
+      'Ultra-high steady-state traffic where 24/7 dedicated container instances are more cost-effective.'
+    ],
+    advantages: [
+      'Zero cost when idle (scales to true zero).',
+      'Automatic scaling from 1 request to 10,000+ concurrent executions in seconds.',
+      'Built-in fault tolerance across multiple Availability Zones.'
+    ],
+    disadvantages: [
+      'Cold start latency (100ms - 2s) on initial invocation of un-warmed runtimes.',
+      '15-minute maximum execution timeout per invocation.'
+    ],
+    cloudEquivalents: {
+      aws: 'AWS Lambda | Amazon API Gateway',
+      azure: 'Azure Functions | Azure API Management',
+      gcp: 'Cloud Functions / Cloud Run | Apigee',
+      notes: 'GCP Cloud Run allows multi-concurrency (up to 1,000 requests per container), whereas Lambda allocates 1 instance per concurrent request.'
+    },
+    commonMistakes: [
+      {
+        mistake: 'Putting relational database connections inside Lambda handler without connection pooling.',
+        consequence: '1,000 concurrent Lambdas open 1,000 DB connections, crashing RDS with connection exhaustion.',
+        fix: 'Use Amazon RDS Proxy to pool and share database connections across serverless Lambda functions.'
+      }
+    ],
+    handsOn: {
+      type: 'simulation',
+      title: 'Writing a Serverless Python Lambda Function',
+      scenario: 'Deploy an event-driven Python Lambda function integrated with DynamoDB.',
+      terraformCode: `resource "aws_lambda_function" "api_handler" {
+  filename      = "lambda.zip"
+  function_name = "ProcessOrder"
+  role          = aws_iam_role.lambda_exec.arn
+  handler       = "index.handler"
+  runtime       = "python3.11"
+  architectures = ["arm64"] # Graviton for 20% cost savings
+
+  environment {
+    variables = {
+      TABLE_NAME = "OrdersTable"
+    }
+  }
+}`,
+      expectedOutcome: 'Serverless Lambda function deployed with ARM64 architecture.',
+      steps: ['1. Write Python handler', '2. Package into zip', '3. Attach execution role']
+    },
+    scenarioChallenge: {
+      title: 'Eliminating Cold Start Latency for Checkout API',
+      problem: 'Your Java-based serverless checkout API experiences a 3-second cold start when traffic spikes. Customer conversion is dropping. What is the recommended architectural solution?',
+      constraints: ['Maintain serverless architecture', 'Reduce latency to under 200ms'],
+      options: [
+        {
+          id: 'a',
+          text: 'Set up an hourly ping script to keep the function awake',
+          isCorrect: false,
+          explanation: 'Pinging only keeps a single container warm and does not help when traffic spikes across hundreds of concurrent containers.'
+        },
+        {
+          id: 'b',
+          text: 'Enable AWS Lambda SnapStart (or Provisioned Concurrency) for the Java Lambda function',
+          isCorrect: true,
+          explanation: 'Correct! SnapStart caches pre-initialized microVM snapshots, reducing Java cold starts from 3 seconds to under 200ms with zero code changes.'
+        },
+        {
+          id: 'c',
+          text: 'Rewrite the entire application in Assembly',
+          isCorrect: false,
+          explanation: 'Impractical.'
+        }
+      ]
+    },
+    interviewQuestions: [
+      {
+        question: 'How do you handle relational database connection limits with AWS Lambda?',
+        whyAsked: 'High-frequency cloud serverless architecture interview question.',
+        answer: 'Because Lambda functions scale horizontally by launching independent microVMs, 1,000 concurrent requests will spawn 1,000 Lambda instances, overwhelming RDS PostgreSQL/MySQL connection limits. To solve this: (1) Deploy Amazon RDS Proxy in the VPC between Lambda and RDS to maintain a pooled pool of persistent connections; (2) Or use a serverless native database like Amazon Aurora Serverless v2 with Data API (HTTP REST connection) or Amazon DynamoDB.',
+        architecturalDefense: 'RDS Proxy reduces database memory overhead by 70% and preserves existing SQL business logic while enabling serverless elasticity.',
+        keyPoints: ['Connection pool exhaustion', 'Amazon RDS Proxy', 'Aurora Serverless v2 Data API']
+      }
+    ],
+    keyTakeaways: [
+      'Lambda scales automatically to zero when idle.',
+      'Use RDS Proxy when connecting Lambda to relational databases.',
+      'Use SnapStart or Provisioned Concurrency to eliminate cold starts.'
+    ]
   }
 ];

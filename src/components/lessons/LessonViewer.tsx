@@ -67,11 +67,20 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onNextLesson
             </p>
           </div>
 
-          {completed && (
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 text-xs font-bold shadow-lg shadow-emerald-950/40">
-              <CheckCircle className="w-4 h-4 text-emerald-400" /> Completed
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <a
+              href="#/lab"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 text-xs font-bold transition-all shadow-sm"
+              title="Open and edit this architecture in the interactive drag-and-drop designer"
+            >
+              <Terminal className="w-3.5 h-3.5" /> Open in Lab
+            </a>
+            {completed && (
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 text-xs font-bold shadow-lg shadow-emerald-950/40">
+                <CheckCircle className="w-4 h-4 text-emerald-400" /> Completed
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -196,6 +205,17 @@ export const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onNextLesson
             {/* Structured Diagram Viewer */}
             {lesson.diagramData && (
               <div className="p-6 rounded-xl bg-slate-950 border border-slate-800 relative mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Interactive Service Nodes
+                  </span>
+                  <a
+                    href="#/lab"
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-bold hover:bg-cyan-500 hover:text-slate-950 transition-all"
+                  >
+                    <Terminal className="w-3.5 h-3.5" /> Customize in Architecture Lab
+                  </a>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                   {lesson.diagramData.nodes.map((n) => (
                     <div key={n.id} className="p-3.5 rounded-xl bg-slate-900 border border-cyan-500/30 shadow-lg shadow-cyan-950/20 text-center">

@@ -47,8 +47,11 @@ export const App: React.FC = () => {
               <Route path="/" element={<HomeDashboard />} />
               <Route path="/fundamentals" element={<FundamentalsPage />} />
               <Route path="/aws" element={<AwsTrackPage />} />
+              <Route path="/aws/:slug" element={<AwsTrackPage />} />
               <Route path="/azure" element={<AzureTrackPage />} />
+              <Route path="/azure/:slug" element={<AzureTrackPage />} />
               <Route path="/gcp" element={<GcpTrackPage />} />
+              <Route path="/gcp/:slug" element={<GcpTrackPage />} />
               <Route path="/compare" element={<ComparePage />} />
               <Route path="/decision-engine" element={<DecisionEnginePage />} />
               <Route path="/lab" element={<ArchitectureLabPage />} />
