@@ -70,6 +70,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <span>Academy Dashboard</span>
           </NavLink>
           <NavLink
+            to="/services"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                isActive
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+              }`
+            }
+          >
+            <Layers className="w-4 h-4 text-cyan-400" />
+            <span>Explore Services</span>
+          </NavLink>
+          <NavLink
             to="/decision-engine"
             onClick={onClose}
             className={({ isActive }) =>

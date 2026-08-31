@@ -26,6 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch, onToggleSidebar })
   }, []);
 
   const navLinks = [
+    { path: '/services', label: 'Explore Services', badgeColor: 'hover:text-cyan-300' },
     { path: '/aws', label: 'AWS Track', badgeColor: 'hover:text-amber-400' },
     { path: '/azure', label: 'Azure Track', badgeColor: 'hover:text-blue-400' },
     { path: '/gcp', label: 'GCP Track', badgeColor: 'hover:text-sky-400' },

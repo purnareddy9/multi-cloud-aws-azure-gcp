@@ -21,6 +21,7 @@ import { SecurityPage } from './pages/SecurityPage';
 import { HaPage } from './pages/HaPage';
 import { DrPage } from './pages/DrPage';
 import { MultiCloudPage } from './pages/MultiCloudPage';
+import { ServiceExplorerPage } from './pages/ServiceExplorerPage';
 
 export const App: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -46,6 +47,7 @@ export const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<HomeDashboard />} />
               <Route path="/fundamentals" element={<FundamentalsPage />} />
+              <Route path="/services" element={<ServiceExplorerPage />} />
               <Route path="/aws" element={<AwsTrackPage />} />
               <Route path="/aws/:slug" element={<AwsTrackPage />} />
               <Route path="/azure" element={<AzureTrackPage />} />

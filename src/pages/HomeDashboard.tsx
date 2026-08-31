@@ -7,7 +7,7 @@ import { gcpLessons } from '../data/gcp';
 import { 
   Cloud, ArrowRight, ShieldCheck, Sparkles, Terminal, 
   Layers, Shuffle, Compass, Award, CheckCircle2, 
-  Flame, Globe, Zap, Cpu, BarChart3
+  Flame, Globe, Zap, Cpu, BarChart3, Search
 } from 'lucide-react';
 
 export const HomeDashboard: React.FC = () => {
@@ -57,19 +57,31 @@ export const HomeDashboard: React.FC = () => {
               to="/aws"
               className="flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
             >
-              Start AWS Track <ArrowRight className="w-4 h-4" />
+              Learn AWS <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               to="/azure"
               className="flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
             >
-              Start Azure Track <ArrowRight className="w-4 h-4" />
+              Learn Azure <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               to="/gcp"
               className="flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/20 active:scale-95 transition-all"
             >
-              Start GCP Track <ArrowRight className="w-4 h-4" />
+              Learn GCP <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              to="/services"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 font-bold text-xs transition-colors"
+            >
+              <Search className="w-4 h-4 text-cyan-400" /> Explore Services
+            </Link>
+            <Link
+              to="/compare"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs transition-colors"
+            >
+              <Shuffle className="w-4 h-4" /> Compare Clouds
             </Link>
             <Link
               to="/lab"
@@ -78,10 +90,10 @@ export const HomeDashboard: React.FC = () => {
               <Terminal className="w-4 h-4" /> Architecture Lab
             </Link>
             <Link
-              to="/compare"
-              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs transition-colors"
+              to="/interviews"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold text-xs transition-colors"
             >
-              <Shuffle className="w-4 h-4" /> Compare Clouds
+              <Award className="w-4 h-4 text-amber-400" /> Interview Mode
             </Link>
           </div>
         </div>
