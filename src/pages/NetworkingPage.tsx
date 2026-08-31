@@ -10,22 +10,22 @@ export const NetworkingPage: React.FC = () => {
       subtitle="Master CIDR calculation, subnets, routing tables, NAT gateways, peering meshes, Transit Gateways, and private hybrid connectivity."
       iconType="network"
       diagramAscii={`
-┌──────────────────────────────────────────────────────────┐
-│                   Multi-Cloud Networking Model           │
-│                                                          │
-│  [ On-Premises HQ ] ──(Direct Connect / ExpressRoute)──┐ │
-│                                                        │ │
-│                                  ┌─────────────────────┘ │
-│                                  ▼                       │
-│                        [ Transit Hub / VPN ]             │
-│                                  │                       │
-│            ┌─────────────────────┼─────────────────────┐ │
-│            ▼                     ▼                     ▼ │
-│      [ AWS VPC ]           [ Azure VNet ]        [ GCP VPC ] │
-│     (10.100.0.0/16)       (10.200.0.0/16)       (10.300.0.0) │
-│     Subnets: AZ-locked    Subnets: Regional     Subnets: Reg │
-└──────────────────────────────────────────────────────────┘
-      `}
++-------------------------------------------------------------+
+|                  Multi-Cloud Networking Model               |
+|                                                             |
+|   [ On-Premises HQ ] ===(Direct Connect / ExpressRoute)==+  |
+|                                                          |  |
+|                                   +----------------------+  |
+|                                   v                         |
+|                         [ Transit Hub / VPN ]               |
+|                                   |                         |
+|             +---------------------+---------------------+   |
+|             v                     v                     v   |
+|       [ AWS VPC ]           [ Azure VNet ]        [ GCP VPC ]|
+|      (10.100.0.0/16)       (10.200.0.0/16)       (10.300.0.0)|
+|      Subnets: AZ-locked    Subnets: Regional     Subnets: Reg|
++-------------------------------------------------------------+
+`}
       sections={[
         {
           heading: '1. CIDR Blocks & Subnet Math for Cloud Architects',

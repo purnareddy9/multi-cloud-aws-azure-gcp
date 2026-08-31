@@ -21,6 +21,22 @@ interface GeneralTopicProps {
   };
 }
 
+const cleanDiagram = (raw: string) => {
+  if (!raw) return '';
+  const lines = raw.split('\n');
+  while (lines.length > 0 && lines[0].trim() === '') lines.shift();
+  while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
+  
+  const minIndent = lines.reduce((min, line) => {
+    if (line.trim() === '') return min;
+    const match = line.match(/^(\s*)/);
+    return match ? Math.min(min, match[1].length) : min;
+  }, Infinity);
+
+  if (minIndent === Infinity || minIndent === 0) return lines.join('\n');
+  return lines.map(line => line.slice(minIndent)).join('\n');
+};
+
 export const GeneralTopicPage: React.FC<GeneralTopicProps> = ({
   levelNumber,
   title,
@@ -54,8 +70,8 @@ export const GeneralTopicPage: React.FC<GeneralTopicProps> = ({
       {/* Visual Model ASCII Box */}
       <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Architecture Topology Model</span>
-        <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 font-mono text-xs text-cyan-300 overflow-x-auto custom-scrollbar whitespace-pre">
-          {diagramAscii}
+        <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 font-mono text-[11px] sm:text-xs text-cyan-300 overflow-x-auto custom-scrollbar whitespace-pre leading-relaxed">
+          {cleanDiagram(diagramAscii)}
         </pre>
       </div>
 

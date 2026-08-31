@@ -10,20 +10,20 @@ export const MultiCloudPage: React.FC = () => {
       subtitle="Understand when multi-cloud is truly justified, cross-cloud VPN tunnels, identity federation, Kubernetes portability, and data egress economics."
       iconType="multicloud"
       diagramAscii={`
-┌──────────────────────────────────────────────────────────┐
-│                   Tri-Cloud Architecture Model           │
-│                                                          │
-│  [ Global DNS / Cloudflare ]                             │
-│       │                                                  │
-│       ├────────────────────────┬────────────────────────┐│
-│       ▼                        ▼                        ▼│
-│  [ Primary: AWS ]        [ DR: Azure ]            [ AI: GCP ] │
-│  • EKS Microservices     • AKS Standby            • BigQuery │
-│  • Aurora PostgreSQL     • Failover PostgreSQL    • Vertex AI│
-│       │                        │                        ││
-│       └────────────────(Encrypted Inter-Cloud)──────────┘│
-└──────────────────────────────────────────────────────────┘
-      `}
++-------------------------------------------------------------+
+|                  Tri-Cloud Architecture Model               |
+|                                                             |
+|                   [ Global DNS / Cloudflare ]               |
+|                                |                            |
+|             +------------------+------------------+         |
+|             v                  v                  v         |
+|      [ Primary: AWS ]    [ DR: Azure ]      [ AI: GCP ]     |
+|      * EKS Microservices * AKS Standby      * BigQuery      |
+|      * Aurora PostgreSQL * Failover DB      * Vertex AI     |
+|             |                  |                  |         |
+|             +--------(Encrypted Inter-Cloud)------+         |
++-------------------------------------------------------------+
+`}
       sections={[
         {
           heading: '1. The Golden Rule: Multi-Cloud is NOT Automatically Better',

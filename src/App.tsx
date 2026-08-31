@@ -18,7 +18,8 @@ import { InterviewPrepPage } from './pages/InterviewPrepPage';
 import { TransitionPage } from './pages/TransitionPage';
 import { NetworkingPage } from './pages/NetworkingPage';
 import { SecurityPage } from './pages/SecurityPage';
-import { HaDrPage } from './pages/HaDrPage';
+import { HaPage } from './pages/HaPage';
+import { DrPage } from './pages/DrPage';
 import { MultiCloudPage } from './pages/MultiCloudPage';
 
 export const App: React.FC = () => {
@@ -56,7 +57,9 @@ export const App: React.FC = () => {
               <Route path="/transition" element={<TransitionPage />} />
               <Route path="/networking" element={<NetworkingPage />} />
               <Route path="/security" element={<SecurityPage />} />
-              <Route path="/ha-dr" element={<HaDrPage />} />
+              <Route path="/ha" element={<HaPage />} />
+              <Route path="/dr" element={<DrPage />} />
+              <Route path="/ha-dr" element={<HaPage />} />
               <Route path="/multicloud" element={<MultiCloudPage />} />
               <Route path="*" element={<HomeDashboard />} />
             </Routes>

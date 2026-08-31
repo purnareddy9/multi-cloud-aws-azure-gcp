@@ -3,6 +3,22 @@ import { fundamentalsData } from '../data/fundamentals';
 import { Globe, Shield, Layers, HelpCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+const cleanDiagram = (raw: string) => {
+  if (!raw) return '';
+  const lines = raw.split('\n');
+  while (lines.length > 0 && lines[0].trim() === '') lines.shift();
+  while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
+  
+  const minIndent = lines.reduce((min, line) => {
+    if (line.trim() === '') return min;
+    const match = line.match(/^(\s*)/);
+    return match ? Math.min(min, match[1].length) : min;
+  }, Infinity);
+
+  if (minIndent === Infinity || minIndent === 0) return lines.join('\n');
+  return lines.map(line => line.slice(minIndent)).join('\n');
+};
+
 export const FundamentalsPage: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState(fundamentalsData[0]);
 
@@ -55,9 +71,9 @@ export const FundamentalsPage: React.FC = () => {
 
             {/* ASCII / Visual Flow Diagram */}
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 overflow-x-auto custom-scrollbar">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Architecture Visual Model</span>
-              <pre className="font-mono text-xs text-cyan-300 whitespace-pre">
-                {selectedTopic.diagram}
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Architecture Visual Model</span>
+              <pre className="font-mono text-[11px] sm:text-xs text-cyan-300 whitespace-pre leading-relaxed">
+                {cleanDiagram(selectedTopic.diagram)}
               </pre>
             </div>
 

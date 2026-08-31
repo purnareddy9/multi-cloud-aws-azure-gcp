@@ -10,19 +10,19 @@ export const SecurityPage: React.FC = () => {
       subtitle="Identity federation, role assumption, key management (KMS / Key Vault), private endpoints, and perimeter WAF security."
       iconType="security"
       diagramAscii={`
-┌──────────────────────────────────────────────────────────┐
-│                   Zero Trust Cloud Perimeter             │
-│                                                          │
-│  [ Internet Users ] ──► [ WAF / DDoS Shield ]            │
-│                                │                         │
-│                                ▼                         │
-│                      [ Application Layer ]               │
-│                                │ (Managed Identity)      │
-│                                ▼                         │
-│  [ Private Endpoint ] ──► [ KMS Encrypted Database ]     │
-│  (Zero Public IP)          (TLS 1.3 in transit)          │
-└──────────────────────────────────────────────────────────┘
-      `}
++-------------------------------------------------------------+
+|                  Zero Trust Cloud Perimeter                 |
+|                                                             |
+|   [ Internet Users ] ---> [ Edge WAF / Anti-DDoS Shield ]   |
+|                                     |                       |
+|                                     v                       |
+|                           [ Application Tier ]              |
+|                                     | (Managed Identity /   |
+|                                     v  Instance Profile)    |
+|   [ Private Endpoint ] ----> [ KMS Encrypted Database ]     |
+|   (Zero Public IP)           (TLS 1.3 in-transit)           |
++-------------------------------------------------------------+
+`}
       sections={[
         {
           heading: '1. The Core Tenets of Zero Trust Architecture',

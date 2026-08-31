@@ -256,6 +256,22 @@ export const globalSearchDatabase: SearchResultItem[] = [
     tags: ['transition', 'aws to azure', 'aws to gcp', 'migration', 'mental model']
   },
   {
+    id: 'topic-ha',
+    title: 'High Availability (HA) Architecture Patterns',
+    subtitle: 'Multi-AZ redundancy, Auto-Healing, N+1 capacity, and fault domain isolation',
+    category: 'High Availability',
+    path: '/ha',
+    tags: ['ha', 'high availability', 'multi-az', 'redundancy', 'fault tolerance', 'auto healing']
+  },
+  {
+    id: 'topic-dr',
+    title: 'Disaster Recovery (DR) Strategies & RPO/RTO',
+    subtitle: 'Backup & Restore, Pilot Light, Warm Standby, Active/Active Multi-Region',
+    category: 'Disaster Recovery',
+    path: '/dr',
+    tags: ['dr', 'disaster recovery', 'rpo', 'rto', 'pilot light', 'warm standby', 'active active', 'failover']
+  },
+  {
     id: 'tool-interviews',
     title: 'Cloud Architect Interview Simulator & 50+ Question Bank',
     subtitle: 'Practice scenario defense, trade-offs, and requirement clarification',

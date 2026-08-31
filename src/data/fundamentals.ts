@@ -23,17 +23,17 @@ export const fundamentalsData: FundamentalTopic[] = [
     badge: 'Level 0.1',
     summary: 'Understand the fundamental shift from on-premises capital expenses (CapEx) to elastic on-demand operational expenses (OpEx).',
     diagram: `
-┌──────────────────────────────────────────────────────────┐
-│                    On-Demand Cloud                       │
-│                                                          │
-│  Users ──► [ Internet ] ──► [ Global Cloud Infrastructure ]│
-│                                  │                       │
-│           ┌──────────────┬───────┴──────┬─────────────┐  │
-│           ▼              ▼              ▼             ▼  │
-│       Compute         Storage        Database      Network│
-│     (EC2/VM/GCE)   (S3/Blob/GCS)   (RDS/SQL/Spanner) (VPC)│
-└──────────────────────────────────────────────────────────┘
-    `,
++-------------------------------------------------------------+
+|                     On-Demand Cloud Model                   |
+|                                                             |
+|   Users ---> [ Internet ] ---> [ Global Cloud Infrastructure]|
+|                                      |                      |
+|            +---------------+---------+---------+            |
+|            v               v                   v            |
+|        Compute          Storage             Database        |
+|      (EC2/VM/GCE)    (S3/Blob/GCS)      (RDS/SQL/Spanner)   |
++-------------------------------------------------------------+
+`,
     content: [
       {
         heading: 'The Core Definition',
@@ -68,23 +68,22 @@ export const fundamentalsData: FundamentalTopic[] = [
     badge: 'Level 0.2',
     summary: 'Master the three cloud service models and understand exactly where cloud provider responsibility ends and customer responsibility begins.',
     diagram: `
-┌──────────────────────────────────────────────────────────┐
-│              The Cloud Responsibility Pyramid            │
-├─────────────────┬─────────────────┬──────────────────────┤
-│  IaaS           │  PaaS           │  SaaS                │
-│  (Infrastructure│  (Platform      │  (Software           │
-│   as a Service) │   as a Service) │   as a Service)      │
-├─────────────────┼─────────────────┼──────────────────────┤
-│ Customer:       │ Customer:       │ Customer:            │
-│  • App Code     │  • App Code     │  • User Access & Data│
-│  • OS Patching  │  • App Config   │                      │
-│  • Network Rules│  • Data         │                      │
-│ Provider:       │ Provider:       │ Provider:            │
-│  • Hardware     │  • Hardware     │  • Everything Else!  │
-│  • Hypervisor   │  • OS & Runtime │  • App, OS, Hardware │
-│  • Datacenter   │  • Scaling & DB │  • Maintenance       │
-└─────────────────┴─────────────────┴──────────────────────┘
-    `,
++-------------------------------------------------------------+
+|               The Cloud Responsibility Model                |
++-------------------+--------------------+--------------------+
+|  IaaS             |  PaaS              |  SaaS              |
+|  (Infrastructure) |  (Platform)        |  (Software)        |
++-------------------+--------------------+--------------------+
+| Customer:         | Customer:          | Customer:          |
+|  * App Code       |  * App Code        |  * User Identity   |
+|  * OS Patching    |  * App Config      |  * Data Access     |
+|  * Network Rules  |  * Data & Schemas  |                    |
+| Provider:         | Provider:          | Provider:          |
+|  * Hardware       |  * Hardware        |  * Entire Stack!   |
+|  * Hypervisor     |  * OS & Runtime    |  * App & Platform  |
+|  * Datacenter     |  * Scaling & DB    |  * Maintenance     |
++-------------------+--------------------+--------------------+
+`,
     content: [
       {
         heading: 'Understanding the Spectrum',
@@ -128,22 +127,22 @@ export const fundamentalsData: FundamentalTopic[] = [
     badge: 'Level 0.3',
     summary: 'The physical building blocks of global cloud architectures and how to design for high availability.',
     diagram: `
-┌──────────────────────────────────────────────────────────┐
-│                   Global Cloud Hierarchy                 │
-│                                                          │
-│  [ GLOBAL EDGE NETWORK ] (CloudFront / Cloudflare CDN)    │
-│            │                                             │
-│            ▼                                             │
-│  [ REGION: us-east-1 (N. Virginia) ]                     │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌──────────────┐│
-│  │ AZ 1 (us-east-1a)│ │ AZ 2 (us-east-1b)│ │AZ 3 (us-e-1c││
-│  │ [Data Center A] │ │ [Data Center B] │ │[Data Center C││
-│  │ [Data Center X] │ │ [Data Center Y] │ │[Data Center Z││
-│  └────────┬────────┘ └────────┬────────┘ └───────┬──────┘│
-│           └───────────────────┴──────────────────┘       │
-│               Ultra-Low Latency Fiber (<2ms)             │
-└──────────────────────────────────────────────────────────┘
-    `,
++-------------------------------------------------------------+
+|                    Global Cloud Hierarchy                   |
+|                                                             |
+|   [ GLOBAL EDGE NETWORK ] (CloudFront / Cloudflare CDN)     |
+|               |                                             |
+|               v                                             |
+|   [ REGION: us-east-1 (N. Virginia) ]                       |
+|   +-----------------+ +-----------------+ +----------------+|
+|   | AZ 1 (1a)       | | AZ 2 (1b)       | | AZ 3 (1c)      ||
+|   | [Data Center A] | | [Data Center B] | | [Data Center C]||
+|   | [Data Center X] | | [Data Center Y] | | [Data Center Z]||
+|   +--------+--------+ +--------+--------+ +--------+-------+|
+|            +-------------------+-------------------+        |
+|                 Ultra-Low Latency Fiber (<2ms)              |
++-------------------------------------------------------------+
+`,
     content: [
       {
         heading: 'Regions vs Availability Zones (AZs)',
